@@ -1,0 +1,23 @@
+html{}
+body{
+	background: linear-gradient(331deg, rgba(0,0,0,1) 0%, rgba(0,17,33,1) 54%, rgba(0,60,129,1) 100%) fixed;
+}
+
+/* font */
+html{ 	
+	font-size: 16px; 
+	color: rgba(255,255,255,.75);
+	font-family: 'Roboto', 'Helvetica', sans-serif;
+}
+
+h1,h2,h3{
+	font-weight: normal;
+}
+h1{ font-size: 1.4rem }
+h2{ font-size: 1.1rem }
+.anno{
+	font-size: .75rem;
+	text-transform: uppercase;
+	font-family: 'Space Mono', monospace;
+	color: rgba(255,255,255,.5);
+}
