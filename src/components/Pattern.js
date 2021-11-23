@@ -1,13 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
+
 import { Slider, Button, Stack, IconButton } from '@mui/material';
 import LoadingButton from '@mui/lab/LoadingButton';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import KeyboardArrowUpRoundedIcon from '@mui/icons-material/KeyboardArrowUpRounded';
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
+
+import { format } from 'd3-format';
 
 import { AUTH_TOKEN, API_ROOT } from '../config';
 import axios from 'axios';
+
+const formatTime = seconds => {
+	const f = format('02');
+	const m = Math.floor(seconds/60);
+	const s = seconds%60;
+	return `${f(m)}:${f(s)}`
+}
 
 const Pattern = ({ name, id, desc, open, onToggle }) => {
 
@@ -68,8 +79,11 @@ const Pattern = ({ name, id, desc, open, onToggle }) => {
 	}
 
 	return <div className='pattern' style={{
-		borderBottom: '1px solid rgba(255, 255, 255, .2)',
-		position: 'relative'
+		//borderBottom: '1px solid rgba(255, 255, 255, .2)',
+		position: 'relative',
+		background: 'rgba(255, 255, 255, .05)',
+		marginBottom: '.5rem',
+		borderRadius: '4px'
 	}}>
 		<div className='pattern-bg' style={{
 			position: 'absolute',
@@ -80,71 +94,75 @@ const Pattern = ({ name, id, desc, open, onToggle }) => {
 			background: 'linear-gradient(90deg, rgba(0,255,209,.01) 0%, rgba(0,255,209,.9) 100%)',
 			zIndex: -999
 		}} />
-		<div className='heading' 
-			style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}
-			onClick={() => {
-				if(open){
-					onToggle(null);
-				}else{
-					onToggle(id);
-				}
-			}}
-		>
-			<span style={{display: 'flex', alignItems: 'center'}}>
-				<AccessTimeRoundedIcon />
-				<h2 style={{ marginLeft: '8px' }}>{name}</h2>
-			</span>
-			<span style={{display: 'flex', alignItems: 'center'}}>
-				{
-					open && <LoadingButton 
-						variant='outlined' 
-						size='small' 
-						loading={isFetching || clock>0}
-		        loadingPosition="start"
-		        startIcon={<PlayArrowRoundedIcon />}
-						onClick={e => {
-							e.stopPropagation();
-							activatePattern();
-					}}>
-						{isFetching? 'Waiting...':(clock>0? `${clock}s remaining`: 'RUN')}
-					</LoadingButton>
-				}
-				<IconButton arial-label='toggle' variant='outlined'>
-					{open? <KeyboardArrowUpRoundedIcon style={{ color: 'white' }}/> : <KeyboardArrowDownRoundedIcon style = {{ color: 'white' }}/>}
-				</IconButton>
-			</span>
+		<div style={{ 
+			padding: '0 8px' 
+		}}>
+			<div className='heading' 
+				style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}
+				onClick={() => {
+					if(open){
+						onToggle(null);
+					}else{
+						onToggle(id);
+					}
+				}}
+			>
+				<span style={{display: 'flex', alignItems: 'center'}}>
+					{clock > 0? <LightModeOutlinedIcon />:<AccessTimeRoundedIcon />}
+					<h2 style={{ marginLeft: '8px' }}>{name}</h2>
+				</span>
+				<span style={{display: 'flex', alignItems: 'center'}}>
+					{
+						open && <LoadingButton 
+							variant='outlined' 
+							size='small' 
+							loading={isFetching || clock>0}
+			        loadingPosition="start"
+			        startIcon={<PlayArrowRoundedIcon />}
+							onClick={e => {
+								e.stopPropagation();
+								activatePattern();
+						}}>
+							{isFetching? 'Wait...':(clock>0? `${formatTime(clock)}`: 'RUN')}
+						</LoadingButton>
+					}
+					<IconButton arial-label='toggle' variant='outlined'>
+						{open? <KeyboardArrowUpRoundedIcon style={{ color: 'white' }}/> : <KeyboardArrowDownRoundedIcon style = {{ color: 'white' }}/>}
+					</IconButton>
+				</span>
+			</div>
+			{open && <div className='options' style={{paddingBottom: '1rem'}}>
+				<Stack direction='row' space={2} style={{alignItems: 'center'}}>
+					<span className='anno' style={{width: '8rem'}}>Duration</span>
+					<Slider 
+						disabled={isFetching || clock>0} 
+						aria-label='duration-slider' 
+						value={duration} 
+						step={5}
+						min={10}
+						max={15*60} 
+						onChange={(e,v) => {
+							setDuration(v);
+						}}
+						valueLabelDisplay='auto'
+					/>
+					<span className='anno' style={{width: '6rem', textAlign: 'right'}}>{`${formatTime(duration)}`}</span>
+				</Stack>
+				<Stack direction='row' space={2} style={{alignItems: 'center'}}>
+					<span className='anno' style={{width: '8rem'}}>Delay</span>
+					<Slider 
+						disabled={isFetching || clock>0} 
+						aria-label='delay-slider' 
+						value={delay} 
+						step={5}
+						max={5*60} 
+						onChange={(e,v) => setDelay(v)}
+						valueLabelDisplay='auto'
+					/>
+					<span className='anno' style={{width: '6rem', textAlign: 'right'}}>{`${formatTime(delay)}`}</span>
+				</Stack>
+			</div>}
 		</div>
-		{open && <div className='options' style={{paddingBottom: '1rem'}}>
-			<Stack direction='row' space={2} style={{alignItems: 'center'}}>
-				<span className='anno' style={{width: '8rem'}}>Duration</span>
-				<Slider 
-					disabled={isFetching || clock>0} 
-					aria-label='duration-slider' 
-					value={duration} 
-					step={5}
-					min={10}
-					max={15*60} 
-					onChange={(e,v) => {
-						setDuration(v);
-					}}
-					valueLabelDisplay='auto'
-				/>
-				<span className='anno' style={{width: '6rem', textAlign: 'right'}}>{`${duration}s`}</span>
-			</Stack>
-			<Stack direction='row' space={2} style={{alignItems: 'center'}}>
-				<span className='anno' style={{width: '8rem'}}>Delay</span>
-				<Slider 
-					disabled={isFetching || clock>0} 
-					aria-label='delay-slider' 
-					value={delay} 
-					step={5}
-					max={5*60} 
-					onChange={(e,v) => setDelay(v)}
-					valueLabelDisplay='auto'
-				/>
-				<span className='anno' style={{width: '6rem', textAlign: 'right'}}>{`${delay}s`}</span>
-			</Stack>
-		</div>}
 	</div>
 
 }

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Input, Button } from '@mui/material';
 import axios from 'axios';
 
-import { AUTH_TOKEN, API_ROOT } from '../config';
+import { AUTH_TOKEN, TOKEN_EXP, API_ROOT } from '../config';
 
 const Login = ({ onLoginSuccess }) => {
 
@@ -19,6 +19,7 @@ const Login = ({ onLoginSuccess }) => {
 		axios.post(`${API_ROOT}/login`, {...formState})
 			.then(res => {
 				localStorage.setItem(AUTH_TOKEN, res.data.token);
+				localStorage.setItem(TOKEN_EXP, res.data.tokenExpiry);
 				onLoginSuccess();
 			})
 			.catch(err => {
